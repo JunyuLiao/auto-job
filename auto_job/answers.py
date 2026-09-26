@@ -33,8 +33,11 @@ def answer_question(question: str, profile: dict[str, Any]) -> dict[str, Any]:
         elif "location" in q: value = c.get("location")
         elif "university" in q: value = e.get("undergraduate", {}).get("institution")
         elif "degree" in q: value = e.get("undergraduate", {}).get("degree")
-        elif "sponsorship" in q: value = "No sponsorship required for U.S. employment (U.S. permanent resident)."
-        else: value = "Authorized to work in the United States as a permanent resident."
+        elif "sponsorship" in q:
+            authorization = c.get("work_authorization")
+            value = f"No sponsorship required for U.S. employment ({authorization})." if authorization else None
+        else:
+            authorization = c.get("work_authorization")
+            value = f"Authorized to work in the United States as {authorization}." if authorization else None
         return {"level": level, "answer": value}
     return {"level": level, "answer": None, "reason": "Codex may draft only from verified_facts and must show evidence before use."}
-

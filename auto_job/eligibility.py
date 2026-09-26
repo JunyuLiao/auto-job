@@ -37,10 +37,10 @@ def _explicit_graduation_range(text: str) -> tuple[int, int] | None:
 def evaluate_eligibility(jd: str, profile: dict[str, Any]) -> Eligibility:
     t = jd.lower()
     notes: list[str] = []
-    # Permanent resident satisfies general US authorization and no-sponsorship clauses.
-    if re.search(r"u\.s\. citizens? only|us citizens? only|must be a citizen", t) and not re.search(r"permanent resident|lawful permanent", t):
+    authorization = str(profile.get("candidate", {}).get("work_authorization", "")).lower()
+    if re.search(r"u\.s\. citizens? only|us citizens? only|must be a citizen", t) and "citizen" not in authorization:
         work = FAIL
-        notes.append("Posting appears to require U.S. citizenship; permanent residence is not equivalent.")
+        notes.append("Posting appears to require U.S. citizenship; the local profile does not verify citizenship.")
     elif re.search(r"no sponsorship|will not sponsor|unable to sponsor|must .*authorized|authorized to work in the united states", t):
         work = PASS
     else:
