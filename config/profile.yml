@@ -1,0 +1,29 @@
+# Public template. Put personal values in config/profile.local.yml.
+candidate:
+  full_name: ""
+  email: ""
+  phone: ""
+  location: ""
+  linkedin: ""
+  github: ""
+  work_authorization: ""
+education:
+  undergraduate:
+    institution: ""
+    degree: ""
+    start: ""
+    graduation: ""
+    overall_gpa: ""
+    major_gpa: ""
+  ms_plan:
+    institution: ""
+    program: ""
+    start_term: ""
+    admission_confirmed: false
+    enrollment_confirmed: false
+    expected_graduation: null
+preferences:
+  target_country: "United States"
+  internship_season: ""
+  return_to_school_is_hard_blocker: false
+verified_facts: []

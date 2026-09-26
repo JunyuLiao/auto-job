@@ -1,0 +1,22 @@
+paperclip:
+  enabled: true
+  project:
+    organization: "Personal Career Search"
+    goal: "Find the best Summer 2027 U.S. internship opportunities"
+    name: "Summer 2027 Job Search"
+  scout:
+    name: "Job Scout"
+    role: "scout"
+    schedule: "30 10 * * *"
+    timezone: "local"
+    concurrency: "coalesce_if_active"
+    catch_up: "skip_missed"
+    activity_gate: "always"
+    report_path: "reports/daily/YYYY-MM-DD.md"
+  evaluator:
+    name: "Job Evaluator"
+    role: "evaluator"
+    manual_only: true
+    schedule: null
+  telemetry:
+    enabled: false

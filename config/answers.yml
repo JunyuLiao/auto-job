@@ -1,0 +1,6 @@
+levels:
+  deterministic: [full_name, email, phone, linkedin, github, work_authorization, sponsorship, university, degree, location]
+  evidence_constrained: [pytorch, technically_challenging_project, ml_infrastructure, inference_optimization]
+  manual_review: [expected_graduation, return_to_school, graduate_enrollment, production_cuda_years, security_clearance, salary, relocation, demographic]
+policy: "Unknown or ambiguous questions stop for human review. Never randomize an answer."
+

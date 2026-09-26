@@ -1,0 +1,84 @@
+# Career-Ops scanner input. The list is intentionally diversified across large
+# employers and smaller AI/data/infra companies. `careers_url` stays first-party
+# where possible; ATS URLs are used only where Career-Ops can scan them directly.
+# `scan_method: websearch` means Codex follows the official careers page and
+# hands the resulting postings to the same deterministic triage pipeline.
+title_filter:
+  positive: [intern, internship, co-op, research]
+content_filter:
+  positive: [CUDA, Triton, inference, serving, GPU, PyTorch, LLM, distributed systems, ML infrastructure, compiler, machine learning]
+  negative: [sales, recruiter, marketing, legal, finance]
+location_filter:
+  allow: [United States, USA, Remote, Seattle, California, New York, Austin, Boston, Champaign, Chicago]
+  strict: false
+
+# Big tech and established platforms. These pages are dynamic or use search
+# systems that Career-Ops does not scrape as a native provider, so Codex should
+# visit the official page and record the exact posting URL.
+tracked_companies:
+  - {name: Google, careers_url: "https://www.google.com/about/careers/applications/", scan_method: websearch, scan_query: "site:google.com/about/careers Software Engineering Intern 2027 AI infrastructure"}
+  - {name: Microsoft, careers_url: "https://careers.microsoft.com/v2/global/en/students", scan_method: websearch, scan_query: "site:careers.microsoft.com Software Engineer Intern 2027 AI infrastructure"}
+  - {name: Meta, careers_url: "https://www.metacareers.com/jobs", scan_method: websearch, scan_query: "site:metacareers.com/jobs 2027 software engineering intern machine learning systems"}
+  - {name: Apple, careers_url: "https://jobs.apple.com/en-us/search", scan_method: websearch, scan_query: "site:jobs.apple.com software engineering intern machine learning systems 2027"}
+  - {name: NVIDIA, careers_url: "https://nvidia.wd5.myworkdayjobs.com/en-US/NVIDIAExternalCareerSite", provider: workday, priority: A}
+  - {name: Amazon AWS, careers_url: "https://www.amazon.jobs/en/", provider: amazon, amazon: {loc_query: "United States", base_query: "intern machine learning OR software development engineer", category: software-development}, priority: A}
+  - {name: AMD, careers_url: "https://amd.wd1.myworkdayjobs.com/AMD", provider: workday, priority: A}
+  - {name: Intel, careers_url: "https://jobs.intel.com/", scan_method: websearch, scan_query: "site:jobs.intel.com intern GPU compiler AI systems 2027"}
+  - {name: Qualcomm, careers_url: "https://qualcomm.wd1.myworkdayjobs.com/qualcommcareers", provider: workday, priority: A}
+  - {name: Cisco, careers_url: "https://jobs.cisco.com/", scan_method: websearch, scan_query: "site:jobs.cisco.com intern machine learning systems 2027"}
+  - {name: IBM, careers_url: "https://www.ibm.com/careers/search", scan_method: websearch, scan_query: "site:ibm.com/careers intern AI infrastructure systems 2027"}
+  - {name: Oracle, careers_url: "https://eeho.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1", provider: oraclecloud, priority: B}
+  - {name: Salesforce, careers_url: "https://careers.salesforce.com/en/jobs/", scan_method: websearch, scan_query: "site:careers.salesforce.com intern machine learning infrastructure 2027"}
+
+# AI labs, model infrastructure, GPU systems, and high-growth companies.
+  - {name: OpenAI, careers_url: "https://jobs.ashbyhq.com/openai", provider: ashby, priority: A}
+  - {name: Anthropic, careers_url: "https://www.anthropic.com/careers", scan_method: websearch, scan_query: "site:anthropic.com/careers internship 2027"}
+  - {name: Databricks, careers_url: "https://job-boards.greenhouse.io/databricks", provider: greenhouse, priority: A}
+  - {name: Snowflake, careers_url: "https://careers.snowflake.com/us/en", scan_method: websearch, scan_query: "site:careers.snowflake.com internship machine learning systems 2027"}
+  - {name: Datadog, careers_url: "https://job-boards.greenhouse.io/datadog", provider: greenhouse, priority: B}
+  - {name: Cloudflare, careers_url: "https://job-boards.greenhouse.io/cloudflare", provider: greenhouse, priority: B}
+  - {name: Confluent, careers_url: "https://jobs.ashbyhq.com/confluent", provider: ashby, priority: B}
+  - {name: MongoDB, careers_url: "https://job-boards.greenhouse.io/mongodb", provider: greenhouse, priority: B}
+  - {name: Stripe, careers_url: "https://stripe.com/jobs/search", scan_method: websearch, scan_query: "site:stripe.com/jobs software engineering intern infrastructure 2027"}
+
+  - {name: Together AI, careers_url: "https://job-boards.greenhouse.io/togetherai", provider: greenhouse, priority: A}
+  - {name: Fireworks AI, careers_url: "https://job-boards.greenhouse.io/fireworksai", provider: greenhouse, priority: A}
+  - {name: Modal, careers_url: "https://jobs.ashbyhq.com/modal", provider: ashby, priority: A}
+  - {name: Anyscale, careers_url: "https://jobs.ashbyhq.com/anyscale", provider: ashby, priority: A}
+  - {name: Baseten, careers_url: "https://jobs.ashbyhq.com/baseten", provider: ashby, priority: A}
+  - {name: Cerebras, careers_url: "https://www.cerebras.ai/careers", scan_method: websearch, scan_query: "site:cerebras.ai/careers internship runtime compiler AI cloud 2027"}
+  - {name: Groq, careers_url: "https://groq.com/careers", scan_method: websearch, scan_query: "site:groq.com/careers internship compiler inference systems 2027"}
+  - {name: d-Matrix, careers_url: "https://www.d-matrix.ai/careers/", scan_method: websearch, scan_query: "site:d-matrix.ai/careers internship AI inference compiler 2027"}
+  - {name: Tenstorrent, careers_url: "https://tenstorrent.com/careers", scan_method: websearch, scan_query: "site:tenstorrent.com/careers intern compiler GPU AI 2027"}
+  - {name: SambaNova, careers_url: "https://sambanova.ai/careers", scan_method: websearch, scan_query: "site:sambanova.ai/careers intern inference systems 2027"}
+  - {name: CoreWeave, careers_url: "https://www.coreweave.com/careers", scan_method: websearch, scan_query: "site:coreweave.com/careers internship GPU cloud infrastructure 2027"}
+  - {name: Crusoe, careers_url: "https://www.crusoe.ai/about/careers/early-careers", scan_method: websearch, scan_query: "site:crusoe.ai careers internship AI cloud infrastructure 2027"}
+  - {name: Lambda, careers_url: "https://lambda.ai/careers", scan_method: websearch, scan_query: "site:lambda.ai/careers intern GPU inference infrastructure 2027"}
+  - {name: Hugging Face, careers_url: "https://huggingface.co/join-us", scan_method: websearch, scan_query: "site:huggingface.co/join-us internship inference systems 2027"}
+  - {name: Weights & Biases, careers_url: "https://job-boards.greenhouse.io/wandb", provider: greenhouse, priority: B}
+
+# Data systems and developer infrastructure: valuable alternatives when an
+# internship title is generic SWE but the team works on serving or data planes.
+  - {name: ClickHouse, careers_url: "https://clickhouse.com/company/careers", scan_method: websearch, scan_query: "site:clickhouse.com/company/careers internship database distributed systems 2027"}
+  - {name: MotherDuck, careers_url: "https://motherduck.com/careers/", scan_method: websearch, scan_query: "site:motherduck.com/careers internship DuckDB data systems 2027"}
+  - {name: Cockroach Labs, careers_url: "https://www.cockroachlabs.com/careers/", scan_method: websearch, scan_query: "site:cockroachlabs.com/careers internship distributed systems 2027"}
+  - {name: Pinecone, careers_url: "https://www.pinecone.io/careers/", scan_method: websearch, scan_query: "site:pinecone.io/careers internship vector database AI infrastructure 2027"}
+  - {name: Weaviate, careers_url: "https://weaviate.io/company/careers", scan_method: websearch, scan_query: "site:weaviate.io/company/careers internship vector database 2027"}
+  - {name: Redis, careers_url: "https://redis.io/careers/", scan_method: websearch, scan_query: "site:redis.io/careers internship systems database AI 2027"}
+  - {name: Elastic, careers_url: "https://www.elastic.co/about/careers", scan_method: websearch, scan_query: "site:elastic.co/about/careers internship distributed systems search AI 2027"}
+  - {name: Temporal, careers_url: "https://temporal.io/careers", scan_method: websearch, scan_query: "site:temporal.io/careers internship distributed systems 2027"}
+  - {name: Grafana Labs, careers_url: "https://grafana.com/about/careers/", scan_method: websearch, scan_query: "site:grafana.com/about/careers internship observability systems 2027"}
+
+job_boards: []
+search_queries:
+  - "ML Systems Intern"
+  - "Machine Learning Systems Intern"
+  - "Machine Learning Engineer Intern"
+  - "Research Engineer Intern"
+  - "AI Infrastructure Intern"
+  - "LLM Inference Intern"
+  - "GPU Software Intern"
+  - "AI Compiler Intern"
+  - "Software Engineer Intern CUDA"
+  - "Software Engineer Intern LLM inference"
+  - "Software Engineer Intern Infrastructure"

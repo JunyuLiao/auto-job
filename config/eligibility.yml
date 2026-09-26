@@ -1,0 +1,11 @@
+work_authorization:
+  country: United States
+  permanent_resident: true
+  citizenship_only_is_fail: true
+graduation:
+  verified_date: "May 2027"
+  unconfirmed_ms_cannot_satisfy_hard_range: true
+return_to_school:
+  default: SOFT_NOTE
+  hard_blocker: false
+

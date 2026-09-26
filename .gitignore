@@ -1,0 +1,23 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+output/*.pdf
+output/*.txt
+data/*.db
+data/scan-history.tsv
+data/scan-runs.tsv
+data/applications.md
+jobs/*/evaluation.md
+jobs/*/reviewer.md
+jobs/*/answers.md
+reports/daily/*.md
+data/.paperclip-*
+# Personal career materials stay local and are never pushed.
+CV.pdf
+CV.local.pdf
+config/profile.local.yml
+profile/*.local.*
+profile/cv-source.md
+profile/cv-extracted.txt
+profile/evidence.yml

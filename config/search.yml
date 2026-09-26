@@ -1,0 +1,20 @@
+season: "Summer 2027"
+country: "United States"
+queries:
+  - "ML Systems Intern"
+  - "Machine Learning Systems Intern"
+  - "Machine Learning Engineer Intern"
+  - "Research Engineer Intern"
+  - "Research Intern Machine Learning"
+  - "AI Infrastructure Intern"
+  - "ML Infrastructure Intern"
+  - "LLM Inference Intern"
+  - "GPU Software Intern"
+  - "CUDA Intern"
+  - "AI Compiler Intern"
+  - "Software Engineer Intern Machine Learning"
+  - "Software Engineer Intern AI"
+  - "Applied Scientist Intern"
+content_signals: [CUDA, Triton, inference, serving, GPU, PyTorch, LLM, distributed systems, ML infrastructure]
+target_companies: [NVIDIA, Microsoft, Google, Amazon, Meta, Databricks, Anthropic, OpenAI, Cerebras, Together AI, Modal, d-Matrix, SambaNova, CoreWeave]
+

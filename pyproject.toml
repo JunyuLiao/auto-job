@@ -1,0 +1,14 @@
+[project]
+name = "auto-job"
+version = "0.1.0"
+description = "Codex-first Summer 2027 internship search wrapper"
+requires-python = ">=3.10"
+dependencies = ["PyYAML>=6.0", "pypdf>=4.0"]
+
+[project.scripts]
+auto-job = "auto_job.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
