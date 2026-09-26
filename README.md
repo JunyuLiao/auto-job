@@ -21,7 +21,7 @@ Copy the public profile template to the local-only file, then fill in your own f
 cp config/profile.yml config/profile.local.yml
 ```
 
-Edit `config/profile.local.yml`, keep `CV.pdf` and `profile/evidence.yml` local, and configure `config/portals.yml` with first-party or ATS boards. The loader prefers `config/profile.local.yml` automatically. Personal career materials are ignored by Git and are not part of the public repository.
+Edit `config/profile.local.yml`, keep `CV.pdf` and `profile/evidence.local.yml` local, and configure `config/portals.yml` with first-party or ATS boards. The loader prefers `config/profile.local.yml` automatically. Personal career materials are ignored by Git and are not part of the public repository.
 
 ## Common use cases
 
