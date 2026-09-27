@@ -1,10 +1,18 @@
 # auto-job
 
-`auto-job` is a Codex-first workspace for finding and preparing applications for Summer 2027 U.S. internships. Career-Ops handles job-source scanning, ATS/company discovery, deduplication, JD fetching, and tracking. The wrapper adds candidate-specific eligibility checks, technical-fit triage, evidence-constrained preparation, reviewer prompts, PDF/ATS verification, and a safe answer bank.
+`auto-job` is a Codex-first workspace for finding and preparing applications for Summer 2027 U.S. internships. The pinned Career-Ops submodule owns source scanning, ATS/company discovery, deduplication, job-description fetching, and tracking. This wrapper adds candidate-specific eligibility checks, technical-fit triage, evidence-constrained preparation, PDF/ATS checks, verified answers, and a deterministic application-review boundary.
 
-The normal workflow is intentionally human-controlled: discover and triage automatically, prepare materials with verified evidence, then review and submit applications yourself. The optional Paperclip layer schedules discovery and keeps run history; it does not submit applications or send messages.
+The application path is:
+
+```text
+verified facts → verified answers → immutable bundle → form read-back → REVIEW_READY → human submission
+```
+
+Discovery and preparation can be automated. Submission, messaging, and answers that need facts not present in the profile always remain human-controlled. LinkedIn is never submitted automatically.
 
 ## Setup
+
+Requirements: Python 3.10+, Node.js, `pnpm`, and a local checkout of the Career-Ops submodule.
 
 ```bash
 git submodule update --init --recursive
@@ -13,38 +21,54 @@ python3 -m venv .venv
 .venv/bin/pip install -e .
 ```
 
-If editable installation is unavailable in an offline environment, install the two runtime packages with `.venv/bin/pip install PyYAML pypdf`; the `bin/auto-job` launcher can run directly from the checkout.
+If editable installation is unavailable offline, install the runtime packages instead:
 
-Copy the public profile template to the local-only file, then fill in your own facts:
+```bash
+.venv/bin/pip install PyYAML pypdf
+```
+
+Create the ignored local profile from the public template and fill in only verified facts:
 
 ```bash
 cp config/profile.yml config/profile.local.yml
 ```
 
-Edit `config/profile.local.yml`, keep `CV.pdf` and `profile/evidence.local.yml` local, and configure `config/portals.yml` with first-party or ATS boards. The loader prefers `config/profile.local.yml` automatically. Personal career materials are ignored by Git and are not part of the public repository.
+Keep personal materials in the ignored files `config/profile.local.yml`, `profile/evidence.yml`, and `CV.pdf`. Configure first-party or ATS sources in `config/portals.yml`.
 
-## Common use cases
+### Private home
 
-### Find new internship postings
+Candidate data and application state belong outside the Git worktree. Initialize it once before creating an application bundle:
 
-Use a dry run first to confirm sources and settings without writing scan state:
+```bash
+./bin/auto-job private init
+```
+
+The default is `~/Library/Application Support/auto-job`. Set `AUTO_JOB_HOME` (or the compatibility variable `AUTO_JOB_PRIVATE_HOME`) to choose another directory; it must be outside this repository. The command creates owner-only directories and migrates the local profile, evidence file, and master CV when present. Once an external profile exists, it takes precedence over `config/profile.local.yml`.
+
+The private home contains the profile, verified-answer log, evidence, generated documents, per-job bundles and review records, browser state, and logs. It is never committed.
+
+## Daily job workflow
+
+### 1. Scan sources
+
+Use a dry run to inspect sources without persisting scan state:
 
 ```bash
 ./bin/auto-job scan --dry-run
 ```
 
-Run the daily workflow when you want results persisted and summarized:
+For the normal workflow, run the scout. It invokes Career-Ops, reads the configured first-party/ATS sources plus the live Simplify and SpeedyApply Summer 2027 lists, evaluates saved jobs for eligibility and technical fit, and writes `reports/daily/YYYY-MM-DD.md`:
 
 ```bash
 ./bin/auto-job scout run
 ./bin/auto-job scout last
 ```
 
-The scout uses the pinned Career-Ops scanner, keeps canonical job data in this repository, applies the existing eligibility and technical-fit logic to saved jobs, and writes a dated report under `reports/daily/`. A completed scan with no new postings is reported separately from a source or network failure.
+Useful options are `--since DAYS`, `--dry-run`, and `--no-report`. A successful run with zero new postings is reported as **No new matches**. A scanner or source failure is reported as **Search infrastructure failure** and must not be treated as an empty result.
 
-### Check whether a role fits
+### 2. Check one role
 
-For a quick one-off JD check, pass the title and text directly:
+Pass a saved JD with `--jd`, or provide text directly with `--text`:
 
 ```bash
 ./bin/auto-job evaluate \
@@ -52,30 +76,108 @@ For a quick one-off JD check, pass the title and text directly:
   --text 'Build CUDA kernels and optimize LLM inference on GPUs.'
 ```
 
-The output separates eligibility from technical fit. Unknown facts stay visible for human review instead of being guessed.
+The output keeps eligibility separate from technical fit. Eligibility values are `PASS`, `SOFT_NOTE`, `UNCERTAIN`, or `FAIL`; unknown facts stay visible for review.
 
-### Prepare a saved application
+### 3. Triage saved jobs
 
-After a job has been saved under `jobs/<job-id>/`, prepare it through the evidence-constrained workflow:
+Run the evaluator after a scan, or target one saved job:
+
+```bash
+./bin/auto-job evaluator run
+./bin/auto-job evaluator run --job-id <job-id>
+```
+
+Use `--dry-run` to avoid writing `jobs/*/evaluation.md`. Priority A/B/C is derived from eligibility and technical fit; it does not submit or contact anyone.
+
+### 4. Prepare materials
+
+For a saved job under `jobs/<job-id>/`, run:
 
 ```bash
 ./bin/auto-job prepare <job-id>
 ```
 
-This checks eligibility, protects the unconfirmed graduate-school information, and points to the preparation and reviewer prompts. It does not submit anything.
+This writes the deterministic eligibility evaluation and points to [`prompts/prepare.md`](prompts/prepare.md) and [`prompts/reviewer.md`](prompts/reviewer.md). Map every JD requirement to verified evidence, have the reviewer criticize the draft, then revise. Do not add metrics, technologies, titles, publications, ownership claims, or education facts that are not verified.
 
-### Verify a PDF before sending it
+### 5. Verify a resume or artifact
 
-Check extracted text, contacts, reading order, and required terms before sharing a resume:
+After generating a PDF, inspect its extracted text, contacts, reading order, garbled characters, and required terms:
 
 ```bash
 ./bin/auto-job verify output/resume.pdf --term CUDA --term inference
 ./bin/auto-job validate output/resume.txt
 ```
 
-### Run the optional Paperclip schedule
+`verify` returns a non-zero status when text-layer extraction fails. `validate` enforces the graduate-school claim guard. Run both before presenting an artifact.
 
-Paperclip is useful when you want discovery to happen automatically while your laptop is running:
+## Safe application review
+
+The bundle and review commands do not click Submit. They create a private, content-addressed record and stop at `REVIEW_READY` after exact value read-back.
+
+1. Initialize the private home and finish the resume and verified answers.
+2. Create a bundle. Repeat `--question` for each deterministic or evidence-backed question; a manual-review question stops the command.
+
+   ```bash
+   ./bin/auto-job private init
+   ./bin/auto-job bundle <job-id> \
+     --resume /path/to/resume.pdf \
+     --question 'What is your email?'
+   ```
+
+   `--resume` defaults to `CV.pdf` in the worktree. The command prints the private bundle path and hash.
+
+3. Save an exact form snapshot as JSON. `key` is the profile/bundle path, `label` is the visible question, `options` is the exact allowed-option list (or `[]`), and `dom_value` is the value read back from the form:
+
+   ```json
+   {
+     "fields": [
+       {
+         "key": "candidate.email",
+         "label": "Email",
+         "options": [],
+         "dom_value": "name@example.com"
+       }
+     ]
+   }
+   ```
+
+4. Review the form snapshot against the bundle:
+
+   ```bash
+   ./bin/auto-job review \
+     "$AUTO_JOB_HOME/applications/<job-id>/bundle.json" \
+     form.json
+   ```
+
+   The result is saved beside the bundle as `review.json`. `REVIEW_READY` means every field had a verified value and exact read-back. `MANUAL_REVIEW` means a value was missing, not an exact option, or did not match the observed DOM value. Resolve it manually and create a new review; never guess.
+
+## Command reference
+
+```text
+scan [--dry-run] [--since DAYS]
+status
+evaluate (--jd FILE | --text TEXT) [--title TITLE]
+prepare JOB_ID
+verify PDF [--term TERM]
+answer QUESTION
+validate FILE
+scout run [--dry-run] [--since DAYS] [--no-report]
+scout last
+evaluator run [--dry-run] [--job-id JOB_ID]
+orchestration status
+paperclip open
+private init
+bundle JOB_ID [--resume FILE] [--question QUESTION]
+review BUNDLE_JSON FORM_JSON
+```
+
+`answer` prints the answer level and a value only when it is available from the verified profile. Questions involving expected graduation, graduate enrollment, return-to-school plans, production CUDA years, clearance, salary, relocation, or demographic data are `manual-review`.
+
+Inside Codex, the supported phrases are “scan for new jobs”, “triage today’s jobs”, “prepare application for job `<id>`”, “review application for job `<id>`”, and “show my pipeline”. [`AGENTS.md`](AGENTS.md) defines those workflows.
+
+## Optional Paperclip scheduling
+
+Paperclip is an optional local scheduler. Direct `scan`, `scout`, `evaluate`, `prepare`, `verify`, and `answer` commands work without it.
 
 ```bash
 ./orchestration/paperclip/bootstrap.sh --check
@@ -85,7 +187,7 @@ PAPERCLIP_API_KEY=... ./orchestration/paperclip/configure.sh --apply
 ./orchestration/paperclip/bootstrap.sh --run
 ```
 
-The configured Job Scout routine runs daily at **10:30 AM in the configured local timezone**. It uses `coalesce_if_active` for overlapping runs and `skip_missed` when the laptop was asleep. The Job Evaluator remains manual:
+The default Job Scout routine runs daily at 10:30 in the configured local timezone, coalesces overlapping runs, and skips missed runs while the laptop is asleep. The Job Evaluator remains manual:
 
 ```bash
 ./bin/auto-job evaluator run
@@ -93,36 +195,16 @@ The configured Job Scout routine runs daily at **10:30 AM in the configured loca
 ./bin/auto-job paperclip open
 ```
 
-To change the time, edit `config/paperclip.yml` using standard cron syntax, then rerun `configure.sh --apply`. For example, `30 10 * * *` means 10:30 AM every day. See [docs/PAPERCLIP.md](docs/PAPERCLIP.md) for authentication, pause/resume, failure handling, telemetry, and removal.
+Change the schedule in `config/paperclip.yml` using standard cron syntax, then rerun `configure.sh --apply`. See [`docs/PAPERCLIP.md`](docs/PAPERCLIP.md) for authentication, failure handling, telemetry, pause/resume, and removal.
 
-## Commands
+## Guardrails and reference docs
 
-```bash
-./bin/auto-job scan --dry-run
-./bin/auto-job scan
-./bin/auto-job status
-./bin/auto-job evaluate --title 'Software Engineer Intern' --text 'CUDA, Triton, LLM inference, GPU kernel optimization'
-./bin/auto-job prepare <job-id>
-./bin/auto-job verify output/resume.pdf --term CUDA --term inference
-./bin/auto-job answer 'How many years of production CUDA experience do you have?'
-./bin/auto-job validate output/resume.txt
-./bin/auto-job orchestration status
-./bin/auto-job scout run
-./bin/auto-job scout last
-./bin/auto-job evaluator run
-./bin/auto-job paperclip open
-```
-
-Inside Codex, use: “scan for new jobs”, “triage today’s jobs”, “prepare application for job `<id>`”, “review application for job `<id>`”, or “show my pipeline”. `AGENTS.md` defines these workflows. Final submission is always manual, including LinkedIn.
-
-## Optional Paperclip orchestration
-
-Paperclip is optional: all direct `scan`, `evaluate`, `prepare`, `verify`, and `answer` commands work without it. See [docs/PAPERCLIP.md](docs/PAPERCLIP.md) for the architecture and operating guide.
-
-## Graduate-school guard
-
-Any unconfirmed graduate-school plan is omitted from generated resumes and cannot be used for eligibility. Set the confirmation fields only after the facts are true and verified; leave expected graduation empty until it is known.
+- Eligibility and technical fit are separate checks; see [`docs/ELIGIBILITY.md`](docs/ELIGIBILITY.md).
+- An unconfirmed graduate-school plan cannot satisfy an eligibility gate or appear as a verified resume claim.
+- Unknown application questions, CAPTCHA, MFA, missing evidence, and ambiguous read-back become `MANUAL_REVIEW`.
+- The canonical workflow and private data boundary are described in [`docs/WORKFLOW.md`](docs/WORKFLOW.md) and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+- Final submission and outcome tracking are manual.
 
 ## Attribution
 
-Career-Ops, ai-job-search, and Auto_job_applier_linkedIn are MIT-licensed upstream references. Their repository URLs, commits, and adopted mechanisms are documented in `docs/ARCHITECTURE.md`; no upstream code from the latter two is vendored.
+Career-Ops, ai-job-search, and Auto_job_applier_linkedIn are MIT-licensed upstream references. Repository URLs, commits, and adopted mechanisms are documented in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md); no upstream code from the latter two is vendored.

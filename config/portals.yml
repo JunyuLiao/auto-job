@@ -69,6 +69,40 @@ tracked_companies:
   - {name: Temporal, careers_url: "https://temporal.io/careers", scan_method: websearch, scan_query: "site:temporal.io/careers internship distributed systems 2027"}
   - {name: Grafana Labs, careers_url: "https://grafana.com/about/careers/", scan_method: websearch, scan_query: "site:grafana.com/about/careers internship observability systems 2027"}
 
+# Community-maintained Summer 2027 lists. The scout refreshes these live
+# READMEs through the staged local parser on every run, alongside the ATS and
+# first-party sources above. Application URLs are preserved as the job URLs.
+  - name: Simplify Summer 2027 Internships
+    source_repo: "https://github.com/SimplifyJobs/Summer2027-Internships"
+    careers_url: "https://raw.githubusercontent.com/SimplifyJobs/Summer2027-Internships/dev/README.md"
+    scan_method: local_parser
+    parser:
+      command: python3
+      script: scripts/auto_job_community_sources.py
+      args: ["--url", "{careers_url}", "--format", "html"]
+      timeout_ms: 60000
+      max_buffer_bytes: 8000000
+  - name: SpeedyApply 2027 AI College Jobs
+    source_repo: "https://github.com/speedyapply/2027-AI-College-Jobs"
+    careers_url: "https://raw.githubusercontent.com/speedyapply/2027-AI-College-Jobs/main/README.md"
+    scan_method: local_parser
+    parser:
+      command: python3
+      script: scripts/auto_job_community_sources.py
+      args: ["--url", "{careers_url}", "--format", "markdown"]
+      timeout_ms: 60000
+      max_buffer_bytes: 8000000
+  - name: SpeedyApply 2027 SWE College Jobs
+    source_repo: "https://github.com/speedyapply/2027-SWE-College-Jobs"
+    careers_url: "https://raw.githubusercontent.com/speedyapply/2027-SWE-College-Jobs/main/README.md"
+    scan_method: local_parser
+    parser:
+      command: python3
+      script: scripts/auto_job_community_sources.py
+      args: ["--url", "{careers_url}", "--format", "markdown"]
+      timeout_ms: 60000
+      max_buffer_bytes: 8000000
+
 job_boards: []
 search_queries:
   - "ML Systems Intern"

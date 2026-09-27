@@ -4,9 +4,10 @@ from auto_job.answers import answer_question
 from auto_job.eligibility import evaluate_eligibility
 from auto_job.matching import technical_fit
 from auto_job.profile import load_profile, assert_no_unconfirmed_ms
-from auto_job.scout import deduplicate_postings
+from auto_job.scout import _staged_community_parser, deduplicate_postings
 from auto_job.evaluator import _priority
 import auto_job.scout as scout
+from scripts.community_job_sources import parse_html_jobs, parse_markdown_jobs
 
 PROFILE = load_profile()
 
@@ -61,6 +62,35 @@ def test_evaluator_priority_uses_canonical_eligibility_and_fit_levels():
     assert _priority("PASS", "very_high") == "A"
     assert _priority("PASS", "medium") == "B"
     assert _priority("UNCERTAIN", "low") == "C"
+
+def test_community_markdown_parser_normalizes_speedyapply_rows():
+    document = """| Company | Position | Location | Salary | Posting | Age |
+|---|---|---|---|---|---|
+| <a href=\"https://figma.com\"><strong>Figma</strong></a> | Data Engineer Intern - 2027 | San Francisco, CA +1 | $60/hr | <a href=\"https://boards.greenhouse.io/figma/jobs/1\"><img src=\"x\"/></a> | 2d |"""
+    jobs = parse_markdown_jobs(document, "https://raw.githubusercontent.com/example/jobs/main/README.md")
+    assert jobs == [{
+        "company": "Figma",
+        "title": "Data Engineer Intern - 2027",
+        "location": "San Francisco, CA +1",
+        "url": "https://boards.greenhouse.io/figma/jobs/1",
+    }]
+
+def test_community_html_parser_carries_simplify_continuation_company():
+    document = """<table><tr><th>Company</th><th>Role</th><th>Location</th><th>Application</th><th>Age</th></tr>
+<tr><td>🔥 <strong><a href=\"https://simplify.jobs/c/Foo\">Foo</a></strong></td><td>Software Engineer Intern</td><td>SF</td><td><a href=\"https://jobs.example.com/1/application?embed=true&utm_source=x&ref=y\"><img src=\"x\"/></a></td><td>1d</td></tr>
+<tr><td>↳</td><td>Systems Intern</td><td>SF</td><td><a href=\"https://jobs.example.com/2\"><img src=\"x\"/></a></td><td>1d</td></tr></table>"""
+    jobs = parse_html_jobs(document, "https://raw.githubusercontent.com/example/jobs/main/README.md")
+    assert [job["company"] for job in jobs] == ["Foo", "Foo"]
+    assert jobs[0]["url"] == "https://jobs.example.com/1"
+
+def test_community_parser_is_staged_and_restored(tmp_path):
+    upstream = tmp_path / "career-ops"
+    target = upstream / "scripts" / "auto_job_community_sources.py"
+    target.parent.mkdir(parents=True)
+    target.write_text("sentinel", encoding="utf-8")
+    with _staged_community_parser(upstream):
+        assert target.read_text(encoding="utf-8").startswith("#!/usr/bin/env python3")
+    assert target.read_text(encoding="utf-8") == "sentinel"
 
 def test_scout_report_distinguishes_infrastructure_failure(tmp_path, monkeypatch):
     class Completed:

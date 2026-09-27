@@ -7,9 +7,11 @@ You are operating an internship-search workspace. Use English output unless the 
 - Discovery is delegated to `third_party/career-ops`; set `CAREER_OPS_ROOT` to this repository and do not modify upstream files for personal data.
 - Run eligibility separately from technical fit. Preserve exact JD wording for uncertain gates.
 - Treat local `config/profile.local.yml` and `profile/evidence.yml` as verified sources. Distinguish verified fact, inferred skill, preference, and generated wording.
+- Prefer the repository-external private home (`AUTO_JOB_HOME`, default `~/Library/Application Support/auto-job`) for candidate facts, verified answers, documents, application bundles, evidence, and browser state. Use `./bin/auto-job private init` before preparing a bundle; never commit private-home contents.
 - Never invent a metric, technology, title, publication, ownership claim, enrollment status, or answer.
 - Any unconfirmed graduate-school plan is not a verified fact and cannot be used to pass a graduation or enrollment test.
 - Unknown application questions are `manual-review`; never randomize or silently guess. Never auto-submit LinkedIn.
+- Application execution must stop at a persisted `REVIEW_READY` screen after exact form read-back. Human approval is required for submission.
 - Paperclip is optional orchestration only. Keep canonical job/profile/eligibility state in auto-job and Career-Ops; use `./bin/auto-job scout run` and `./bin/auto-job evaluator run` for agent work.
 - For Priority A use `prompts/prepare.md` and `prompts/reviewer.md`; reviewer criticism precedes revision.
 - After any PDF generation, run `./bin/auto-job verify` and check actual extracted text, reading order, contacts, garbled characters, and supported JD terms.

@@ -39,5 +39,5 @@ def answer_question(question: str, profile: dict[str, Any]) -> dict[str, Any]:
         else:
             authorization = c.get("work_authorization")
             value = f"Authorized to work in the United States as {authorization}." if authorization else None
-        return {"level": level, "answer": value}
+        return {"level": level, "answer": value, "source": "verified profile" if value is not None else None}
     return {"level": level, "answer": None, "reason": "Codex may draft only from verified_facts and must show evidence before use."}

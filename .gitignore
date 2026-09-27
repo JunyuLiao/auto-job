@@ -13,6 +13,10 @@ jobs/*/reviewer.md
 jobs/*/answers.md
 reports/daily/*.md
 data/.paperclip-*
+# External private home is preferred; these remain ignored for compatibility.
+private/
+applications/*/bundle.json
+applications/*/review.json
 # Personal career materials stay local and are never pushed.
 CV.pdf
 CV.local.pdf

@@ -3,13 +3,16 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import subprocess
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Iterable
 
 from .profile import ROOT
+from .private import private_profile_path
 
 
 @dataclass
@@ -23,6 +26,30 @@ class ScoutResult:
     urls: list[str] | None = None
     message: str = ""
     evaluated: int = 0
+
+
+@contextmanager
+def _staged_community_parser(upstream: Path):
+    """Make the repo-owned parser visible to Career-Ops for one scan.
+
+    Career-Ops intentionally confines local parser scripts to its own checkout.
+    The parent project owns this parser, so stage a temporary copy and restore
+    the submodule immediately after the child process exits.
+    """
+    source = ROOT / "scripts" / "community_job_sources.py"
+    target = upstream / "scripts" / "auto_job_community_sources.py"
+    if not source.exists():
+        raise FileNotFoundError(f"community source parser is missing: {source}")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    previous = target.read_bytes() if target.exists() else None
+    shutil.copyfile(source, target)
+    try:
+        yield
+    finally:
+        if previous is None:
+            target.unlink(missing_ok=True)
+        else:
+            target.write_bytes(previous)
 
 
 def _node() -> str:
@@ -112,12 +139,22 @@ def run_scout(*, dry_run: bool = False, since: int | None = None, report: bool =
     env = os.environ.copy()
     env["CAREER_OPS_ROOT"] = str(ROOT)
     env["CAREER_OPS_PORTALS"] = str(ROOT / "config" / "portals.yml")
+    if private_profile_path(ROOT).exists():
+        env["CAREER_OPS_PROFILE"] = str(private_profile_path(ROOT))
     cmd = [_node(), str(upstream / "scan.mjs"), "--json"]
     if dry_run:
         cmd.append("--dry-run")
     if since is not None:
         cmd += ["--since", str(since)]
-    completed = subprocess.run(cmd, cwd=upstream, env=env, text=True, capture_output=True)
+    try:
+        with _staged_community_parser(upstream):
+            completed = subprocess.run(cmd, cwd=upstream, env=env, text=True, capture_output=True)
+    except Exception as exc:
+        result = ScoutResult("failed", None, 2, errors=[f"scan setup: {exc}"], message="scan setup failed")
+        if report:
+            result.report_path = _report_path(day)
+            _write_report(result.report_path, result, None, dry_run)
+        return result
     receipt = _receipt(completed.stdout)
     sources = receipt.get("sources", []) if receipt else []
     scanned = int(receipt.get("scanned", receipt.get("total", 0)) or 0) if receipt else 0

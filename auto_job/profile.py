@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 import yaml
+from .private import private_profile_path
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,6 +15,9 @@ def load_yaml(path: Path) -> dict[str, Any]:
 
 
 def load_profile(root: Path = ROOT) -> dict[str, Any]:
+    external = private_profile_path(root)
+    if external.exists():
+        return load_yaml(external)
     local = root / "config" / "profile.local.yml"
     return load_yaml(local if local.exists() else root / "config" / "profile.yml")
 
